@@ -29,7 +29,7 @@ require("dotenv").config();
 const privateKey = process.env.WALLET_PRIVATE_KEY;
 const privateKeyProvider = new PrivateKeyProvider(
   privateKey,
-  "http://20.196.209.2:8545"
+  process.env.JSON_RPC_HTTP_ENDPOINT
 );
 
 module.exports = {
