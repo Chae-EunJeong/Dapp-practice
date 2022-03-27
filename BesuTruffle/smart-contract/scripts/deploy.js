@@ -20,8 +20,16 @@ async function main() {
   const mintAnimalToken = await MintAnimalToken.deploy();
   console.log("MintAnimalToken address: ", mintAnimalToken.address);
 
-  saveFrontendFiles(mintAnimalToken, "MintAnimalToken");
-  saveFrontendFiles(ssafyNFT, "SsafyNFT");
+  const MintTicket = await ethers.getContractFactory("MintTicket");
+  const mintTicket = await MintTicket.deploy(20);
+  console.log("MintTicket address: ", mintTicket.address);
+
+  const SaleTicket = await ethers.getContractFactory("SaleTicket");
+  const saleTicket = await SaleTicket.deploy(mintTicket.address);
+  console.log("SaleTicket address: ", saleTicket.address);
+
+  saveFrontendFiles(mintTicket, "MintTicket");
+  saveFrontendFiles(saleTicket, "SaleTicket");
 }
 
 function saveFrontendFiles(token, name) {
