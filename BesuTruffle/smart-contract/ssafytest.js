@@ -1,13 +1,5 @@
-const Web3 = require("web3");
-const fs = require("fs");
-const Tx = require("ethereumjs-tx").Transaction;
-
-// 네트워크 기본 설정
-const ssafyProvider = new Web3.providers.HttpProvider(
-  "http://20.196.209.2:8545"
-);
-// const localProvider = new Web3.providers.HttpProvider("http://localhost:7545");
-const web3 = new Web3(ssafyProvider);
+import { web3 } from "./ssafyConfig.js";
+import fs from "fs";
 
 // 내 지갑
 const myWalletAddress = "0x2177a0dC22B2072e8ffFA2269a67E907784ef63b";
@@ -18,7 +10,6 @@ const myBufPrivateKey = Buffer.from(
   "hex"
 );
 const myWalletAccount = web3.eth.accounts.privateKeyToAccount(myPrivateKey);
-
 // 테스트용 - 정빈 지갑
 const jbWalletAddress = "0x162560909C304f3de8F71B425C80B8a16251cf51";
 const jbPrivateKey =
@@ -47,28 +38,74 @@ async function getBalance(walletAddress) {
 // getBalance(jbWalletAddress);
 
 /* MintTicket 배포 확인 */
-async function deploy() {
+async function deploy(price) {
   const { abi: mintTicketAbi } = JSON.parse(
     fs.readFileSync("./artifacts/contracts/MintTicket.sol/MintTicket.json")
   );
   const { bytecode: mintTicketBytecode } = JSON.parse(
     fs.readFileSync("./artifacts/contracts/MintTicket.sol/MintTicket.json")
   );
-  const resultContract = await new web3.eth.Contract(mintTicketAbi).deploy({
+
+  const { abi: saleTicketAbi } = JSON.parse(
+    fs.readFileSync("./artifacts/contracts/SaleTicket.sol/SaleTicket.json")
+  );
+  const { bytecode: saleTicketBytecode } = JSON.parse(
+    fs.readFileSync("./artifacts/contracts/SaleTicket.sol/SaleTicket.json")
+  );
+
+  const mintContractInstance = new web3.eth.Contract(mintTicketAbi);
+  const mintDeployedContract = mintContractInstance.deploy({
     data: mintTicketBytecode,
-    arguments: [20],
+    arguments: [price],
   });
-  console.log(resultContract.options.address);
-  // const resultEncode = resultContract.encodeABI();
-  // const gasEstimate = await resultContract.estimateGas({
-  //   from: myWalletAddress,
-  // });
-  // const rawTx = {
-  //   from: myWalletAddress,
-  //   to: contractAddr,
-  //   gas: gasEstimate,
-  //   data: contractEncodedMethod,
-  // };
+  const gasEstimate = await mintDeployedContract.estimateGas({
+    from: myWalletAddress,
+  });
+  const resultEncode = mintDeployedContract.encodeABI();
+  var tx = {
+    data: resultEncode,
+    gas: gasEstimate,
+  };
+  web3.eth.accounts.signTransaction(tx, myPrivateKey).then((signed) => {
+    web3.eth
+      .sendSignedTransaction(signed.rawTransaction)
+      .on("receipt", async (receipt) => {
+        console.log(receipt.contractAddress);
+        const saleContractInstance = await new web3.eth.Contract(
+          saleTicketAbi,
+          receipt.contractAddress
+        );
+        const saleDeployedContract = await saleContractInstance.deploy({
+          data: saleTicketBytecode,
+          arguments: [receipt.contractAddress],
+        });
+        const saleGasEstimate = await saleDeployedContract.estimateGas({
+          from: myWalletAddress,
+        });
+        const saleResultEncode = saleDeployedContract.encodeABI();
+        var tx = {
+          data: saleResultEncode,
+          gas: saleGasEstimate,
+        };
+        web3.eth.accounts.signTransaction(tx, myPrivateKey).then((signed) => {
+          web3.eth
+            .sendSignedTransaction(signed.rawTransaction)
+            .on("receipt", async (receipt) => {
+              // const length =
+              //   await saleDeployedContract.methods.getOnSaleTicketArrayLength.call();
+              // console.log(length);
+              console.log(receipt.contractAddress);
+            });
+        });
+      });
+  });
+
+  //console.log(await deployedContract._parent.methods.name().call());
+  // console.log(deployedContract._parent._address);
 }
 
-deploy();
+async function run() {
+  const addr = await deploy(20);
+  console.log(addr);
+}
+run();
