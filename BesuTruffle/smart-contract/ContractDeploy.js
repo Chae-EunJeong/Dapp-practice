@@ -95,10 +95,53 @@ export async function saleDeploy(mintAddr) {
   console.log(admin);
   /* 티켓 구매  */
   // 1.mintTicket contract가 구매자의 SSAFY 토큰을 상대방에게 전송할 수 있는 권한을 부여합니다.
+
   // 2. 정상 호출 후, Sale 컨트랙트의 purchase() 함수를 호출합니다.
+  // const nonce = await web3.eth.getTransactionCount(jbWalletAddress);
+  // console.log(nonce);
+  // let tx = {};
+  // tx.nonce = await web3.eth.getTransactionCount(jbWalletAddress);
+  // tx.from = jbWalletAddress;
+  // tx.to = mintContractAddr;
+  // tx.data = mintContractTest.methods.buyTicket(jbWalletAddress).encodeABI();
+  // // //tx.gas = await web3.eth.getGasPrice();
+  // tx.gas = 300000;
+
+  // let signedTx = await web3.eth.accounts.signTransaction(
+  //   tx,
+  //   jbWalletAccount.privateKey
+  // );
+  // console.log(signedTx);
+
+  // var receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+  // console.log(receipt);
+
+  // const test = await ssafyTokenContract.methods
+  //   .transfer(myWalletAddress, 20)
+  //   .call({ from: jbWalletAddress });
+  // console.log(test);
   const nonce = await web3.eth.getTransactionCount(jbWalletAddress);
-  console.log(nonce);
   let tx = {};
+  tx.nonce = await web3.eth.getTransactionCount(jbWalletAddress);
+  tx.from = jbWalletAddress;
+  tx.to = ssafyTokenAddr;
+  tx.data = ssafyTokenContract.methods
+    .approve(mintContractAddr, 20)
+    .encodeABI();
+  // //tx.gas = await web3.eth.getGasPrice();
+  tx.gas = 3000000;
+
+  let signedTx = await web3.eth.accounts.signTransaction(
+    tx,
+    jbWalletAccount.privateKey
+  );
+
+  var receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+  console.log(receipt);
+
+  // buyticket 함수 호출
+  console.log("========buyticket============");
+  tx = {};
   tx.nonce = await web3.eth.getTransactionCount(jbWalletAddress);
   tx.from = jbWalletAddress;
   tx.to = mintContractAddr;
@@ -106,21 +149,14 @@ export async function saleDeploy(mintAddr) {
   // //tx.gas = await web3.eth.getGasPrice();
   tx.gas = 300000;
 
-  let signedTx = await web3.eth.accounts.signTransaction(
+  signedTx = await web3.eth.accounts.signTransaction(
     tx,
     jbWalletAccount.privateKey
   );
-  console.log(signedTx);
-  
+
   var receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
   console.log(receipt);
-  
-  // const test = await ssafyTokenContract.methods
-  //   .transfer(myWalletAddress, 20)
-  //   .call({ from: jbWalletAddress });
-  // console.log(test);
 
-  
   /* 보유 티켓 조회 */
   try {
     const getTickets = await mintContractTest.methods
@@ -130,4 +166,8 @@ export async function saleDeploy(mintAddr) {
   } catch (err) {
     console.error();
   }
+  const afterSenderBalance = await mintContractTest.methods
+    .getCurrencyAmount()
+    .call({ from: jbWalletAddress });
+  console.log(senderBalance);
 })();
