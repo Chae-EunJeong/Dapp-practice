@@ -49,6 +49,7 @@ contract MintTicket is ERC721Enumerable, Ownable{
     function getCurrencyAmount() public view returns (uint256) {
         return erc20Contract.balanceOf(msg.sender);
     }
+    
     // 사용자가 결제 누르면 티켓 가격(msg.value)과 함께 호출되는 함수
     // 사용자에게 돈을 받고, NFT 발급
     function buyTicket(string memory _tokenURI) public returns (uint256) {   
@@ -61,7 +62,7 @@ contract MintTicket is ERC721Enumerable, Ownable{
     }
 
     // 해당 컨트랙트 내에서, 특정 주소가 가진 티켓들의 tokenId 리스트 반환
-    function getTicketList(address _mintTicketOwner) view public returns (TicketTokenData[] memory) {
+    function getTicketList(address _mintTicketOwner) public view returns (TicketTokenData[] memory) {
         uint256 balanceLength = balanceOf(_mintTicketOwner);
         
         // 아래 주석 풀면 프론트에서 에러 처리 해줘야함 (Returned error: Execution reverted)

@@ -3,13 +3,16 @@ pragma solidity ^0.8.4;
 
 import "./MintTicket.sol";
 import "hardhat/console.sol";
+import "./token/ERC20/ERC20.sol";
 
 contract SaleTicket {
    
     MintTicket public mintTicketAddress;
+    IERC20 public erc20Contract;
 
-    constructor (address _mintTicketAddress) {
+    constructor (address _mintTicketAddress, address _currencyAddress) {
         mintTicketAddress = MintTicket(_mintTicketAddress);
+        erc20Contract = IERC20(_currencyAddress);
     }
 
     mapping(uint256 => uint256) public ticketPrices;
@@ -27,17 +30,14 @@ contract SaleTicket {
         onSaleTicketArray.push(_tokenId);
     }
 
-    function purchaseTicket(uint256 _tokenId) public payable {
+    function purchaseTicket(uint256 _tokenId) public {
         uint256 price = ticketPrices[_tokenId];
         address ticketOwner = mintTicketAddress.ownerOf(_tokenId);
 
         require(price > 0, "Ticket not sale.");
-        require(price <= msg.value, "Caller sent lower than price.");
         require(ticketOwner != msg.sender, "Caller is ticket owner.");
-        console.log(ticketOwner);
-        payable(ticketOwner).transfer(msg.value);
-        console.log(msg.sender);
-        mintTicketAddress.safeTransferFrom(ticketOwner, msg.sender, _tokenId);
+        //erc20Contract.transfer(ticketOwner, price);
+        mintTicketAddress.transferFrom(ticketOwner, msg.sender, _tokenId);
 
         ticketPrices[_tokenId] = 0;
 
