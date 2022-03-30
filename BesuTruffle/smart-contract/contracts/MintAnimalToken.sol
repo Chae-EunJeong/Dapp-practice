@@ -52,4 +52,5 @@ contract MintAnimalToken is ERC721Enumerable {
         saleAnimalToken = SaleAnimalToken(_saleAnimalToken);
     }
 
+
 }
