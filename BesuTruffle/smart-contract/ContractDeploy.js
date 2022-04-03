@@ -291,13 +291,13 @@ export async function saleDeploy(mintAddr) {
   var receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
   // console.log(receipt);
 
-  /* 정빈 계좌로 창현 토큰 구매 */
+  /* 창현 - 구매한 토큰 판매 등록 */
   tx = {};
-  //tx.nonce = await web3.eth.getTransactionCount(chWalletAddress);
-  tx.from = jbWalletAccount.address;
+  tx.nonce = await web3.eth.getTransactionCount(jbWalletAddress);
+  tx.from = jbWalletAddress;
   tx.to = saleContractAddr;
   tx.data = saleContractTest.methods
-    .purchaseTicket(chgetTickets[0].tokenId)
+    .setForSaleTicket(jbgetTickets[0].tokenId, 21)
     .encodeABI();
   // //tx.gas = await web3.eth.getGasPrice();
   tx.gas = 300000;
@@ -308,67 +308,89 @@ export async function saleDeploy(mintAddr) {
   );
 
   var receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-  // console.log(receipt);
 
-  /* 정빈 - 구매한 티켓 조회 */
-  const purchaseTicket = await mintContractTest.methods
-    .getTicketList(jbWalletAccount.address)
-    .call();
+  // test
+  const setList = await saleContractTest.methods.getSaleList().call();
+  console.log("setting price: ", setList[0]);
 
-  console.log(purchaseTicket);
+  // /* 정빈 계좌로 창현 토큰 구매 */
+  // tx = {};
+  // //tx.nonce = await web3.eth.getTransactionCount(chWalletAddress);
+  // tx.from = jbWalletAccount.address;
+  // tx.to = saleContractAddr;
+  // tx.data = saleContractTest.methods
+  //   .purchaseTicket(chgetTickets[0].tokenId)
+  //   .encodeABI();
+  // // //tx.gas = await web3.eth.getGasPrice();
+  // tx.gas = 300000;
 
-  /* 정빈 - 구매한 티켓 삭제 */
-  tx = {};
-  tx.nonce = await web3.eth.getTransactionCount(jbWalletAccount.address);
-  tx.from = jbWalletAccount.address;
-  tx.to = mintContractAddr;
-  tx.data = mintContractTest.methods
-    .cancelTicket(purchaseTicket[0].tokenId)
-    .encodeABI();
-  // //tx.gas = await web3.eth.getGasPrice();
-  tx.gas = 300000;
+  // signedTx = await web3.eth.accounts.signTransaction(
+  //   tx,
+  //   jbWalletAccount.privateKey
+  // );
 
-  signedTx = await web3.eth.accounts.signTransaction(
-    tx,
-    jbWalletAccount.privateKey
-  );
+  // var receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+  // // console.log(receipt);
 
-  var receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-  // console.log(receipt);
+  // /* 정빈 - 구매한 티켓 조회 */
+  // const purchaseTicket = await mintContractTest.methods
+  //   .getTicketList(jbWalletAccount.address)
+  //   .call();
 
-  /* 정빈 - 삭제 후 티켓 조회 */
-  const afterCancelTicket = await mintContractTest.methods
-    .getTicketList(jbWalletAccount.address)
-    .call();
+  // console.log(purchaseTicket);
 
-  console.log(afterCancelTicket);
+  // /* 정빈 - 구매한 티켓 삭제 */
+  // tx = {};
+  // tx.nonce = await web3.eth.getTransactionCount(jbWalletAccount.address);
+  // tx.from = jbWalletAccount.address;
+  // tx.to = mintContractAddr;
+  // tx.data = mintContractTest.methods
+  //   .cancelTicket(purchaseTicket[0].tokenId)
+  //   .encodeABI();
+  // // //tx.gas = await web3.eth.getGasPrice();
+  // tx.gas = 300000;
 
-  /* 관리자 - 보유 잔액 조회 */
-  const beforeWithdrawBalance = await mintContractTest.methods
-    .getCurrencyAmount()
-    .call({ from: myWalletAddress });
-  console.log("before withdraw ssf, admin balance : ", beforeWithdrawBalance);
+  // signedTx = await web3.eth.accounts.signTransaction(
+  //   tx,
+  //   jbWalletAccount.privateKey
+  // );
 
-  /* 관리자 - mint contract 잔액 출금 */
-  tx = {};
-  tx.nonce = await web3.eth.getTransactionCount(myWalletAddress);
-  tx.from = myWalletAddress;
-  tx.to = mintContractAddr;
-  tx.data = mintContractTest.methods.withdraw().encodeABI();
-  // //tx.gas = await web3.eth.getGasPrice();
-  tx.gas = 300000;
+  // var receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+  // // console.log(receipt);
 
-  signedTx = await web3.eth.accounts.signTransaction(
-    tx,
-    myWalletAccount.privateKey
-  );
+  // /* 정빈 - 삭제 후 티켓 조회 */
+  // const afterCancelTicket = await mintContractTest.methods
+  //   .getTicketList(jbWalletAccount.address)
+  //   .call();
 
-  var receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-  // console.log(receipt);
+  // console.log(afterCancelTicket);
 
-  /* 관리자 - 보유 잔액 조회 */
-  const afterWithdrawBalance = await mintContractTest.methods
-    .getCurrencyAmount()
-    .call({ from: myWalletAddress });
-  console.log("after withdraw ssf, admin balance : ", afterWithdrawBalance);
+  // /* 관리자 - 보유 잔액 조회 */
+  // const beforeWithdrawBalance = await mintContractTest.methods
+  //   .getCurrencyAmount()
+  //   .call({ from: myWalletAddress });
+  // console.log("before withdraw ssf, admin balance : ", beforeWithdrawBalance);
+
+  // /* 관리자 - mint contract 잔액 출금 */
+  // tx = {};
+  // tx.nonce = await web3.eth.getTransactionCount(myWalletAddress);
+  // tx.from = myWalletAddress;
+  // tx.to = mintContractAddr;
+  // tx.data = mintContractTest.methods.withdraw().encodeABI();
+  // // //tx.gas = await web3.eth.getGasPrice();
+  // tx.gas = 300000;
+
+  // signedTx = await web3.eth.accounts.signTransaction(
+  //   tx,
+  //   myWalletAccount.privateKey
+  // );
+
+  // var receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+  // // console.log(receipt);
+
+  // /* 관리자 - 보유 잔액 조회 */
+  // const afterWithdrawBalance = await mintContractTest.methods
+  //   .getCurrencyAmount()
+  //   .call({ from: myWalletAddress });
+  // console.log("after withdraw ssf, admin balance : ", afterWithdrawBalance);
 })();
