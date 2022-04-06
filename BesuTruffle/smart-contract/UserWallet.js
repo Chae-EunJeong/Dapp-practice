@@ -13,6 +13,5 @@ export async function getBalance(walletAddress) {
     .balanceOf(walletAddress)
     .call();
 
-  console.log(result);
   return result;
 }
